@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from a2w.smw.agents.state import WeatherReportState, BadcaseType
 from a2w.configs.smw_config import SmwConfig
 from a2w.smw.agents.pecw import PECWAgent
+from a2w.smw.funcalls import TOOLS
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,7 +21,8 @@ class BaseAgent(ABC):
         self.name = name
         self.config = config
         self.badcase_path = self.config.get("badcase_data_path")
-        self.pecw_agent = PECWAgent(llm=self.llm) # TODO  func call
+        available_tools = {tool.name: tool for tool in TOOLS}
+        self.pecw_agent = PECWAgent(tool_registry=available_tools, llm=self.llm)
     
     @abstractmethod
     async def build_prompt(self) -> str:

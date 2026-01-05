@@ -79,7 +79,6 @@ class RecoveryMechanism:
         return None
 
     def get_is_solvable(self, current_recovery_item: RecoveryOutput) -> bool:
-        current_recovery_item = asdict(current_recovery_item)
         prompt = ChatPromptTemplate.from_messages([
                 ("system", COMMON_PROMPT["is_solve"]["system"]),
                 ('user', COMMON_PROMPT["is_solve"]["user"])
@@ -90,9 +89,9 @@ class RecoveryMechanism:
         ])
         query_information = current_recovery_item.query_information
         error_information = current_recovery_item.reason
-        purpose = query_information.purpose
-        current_tool = query_information.tool
-        current_params = query_information.params
+        purpose = query_information.get("purpose")
+        current_tool = query_information.get("tool")
+        current_params = query_information.get("params")
         current_func_des = self.available_tools.get(current_tool).description
 
         chain = prompt | self.llm
@@ -122,11 +121,11 @@ class RecoveryMechanism:
         f"---\n函数名称：{tool.name}\n函数描述和参数形式：{tool.description}\n---\n"
         for tool in TOOLS
         ])
-        query_information = current_recovery_item.current_recovery_item
-        error_information = current_recovery_item.error_information
-        purpose = query_information.purpose
-        current_tool = query_information.tool
-        current_params = query_information.params
+        query_information = current_recovery_item.query_information
+        error_information = current_recovery_item.reason
+        purpose = query_information.get("purpose")
+        current_tool = query_information.get("tool")
+        current_params = query_information.get("params")
         current_func_des = self.available_tools.get(current_tool).description
         start_date = query_plan.meta.get("start_date")
         end_date = query_plan.meta.get("end_date")
@@ -153,5 +152,5 @@ class RecoveryMechanism:
             purpose=purpose,
             tool=obj.get("tool"),
             params=obj.get("params"),
-            expected_fields=query_information.expected_fields
+            expected_fields=query_information.get("expected_fields")
         )

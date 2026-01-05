@@ -103,7 +103,7 @@ async def main():
     )
 
     try:
-        result = await test_db.history(
+        result = await test_db.forecast(
             regions=["万载杨源村", "宜丰谭山院前"],
             start_date="2025-01-01",
             end_date="2025-01-07",
