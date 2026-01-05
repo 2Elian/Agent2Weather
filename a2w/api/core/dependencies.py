@@ -20,27 +20,23 @@ class WorkflowFactory(ABC):
         raise NotImplementedError
 
 class ProductionWorkflowFactory(WorkflowFactory):
-    def __init__(self, config: GlobalConfig, ):
+    def __init__(self, config: GlobalConfig):
         self.config = config
         self.llm_instance = ChatOpenAI(
-            model=self.config.model_name,
-            api_key=self.config.openai_api_key,
-            base_url=self.config.openai_api_base,
-            temperature=0.2
+            model=self.config.get("model_name"),
+            api_key=self.config.get("openai_api_key"),
+            base_url=self.config.get("openai_api_base"),
         )
-        self.db = SQLServerConnector(
-            host=self.config.db_host,
-            port=self.config.db_port,
-            database=self.config.db_name,
-            username=self.config.db_username,
-            password=self.config.db_password
-        )
+        self.db: Optional[SQLServerConnector] = None
         self.smw_config = SmwConfig()
 
     async def initialize(self):
-        await self.db.connect()
-        return self
-        
+        if self.db is None:
+            self.db = SQLServerConnector(
+                self.config.get("db_host"), self.config.get("db_port"), self.config.get("db_name"), self.config.get("db_username"), self.config.get("db_password")
+            )
+            await self.db.connect()
+
     def create_weather_report_workflow(self) -> WeatherReportWorkflow:
         return WeatherReportWorkflow(
             llm = self.llm_instance,
@@ -52,8 +48,7 @@ class ProductionWorkflowFactory(WorkflowFactory):
     def create_nl2sql_workflow(self) -> WeatherReportWorkflow:
         raise NotImplementedError
     async def close(self):
-        if hasattr(self, 'db') and self.db:
-            await self.db.close()
+        await self.db.close()
     
 _factory: Optional[WorkflowFactory] = None
 _config: Optional[GlobalConfig] = None
@@ -76,13 +71,13 @@ async def get_wr_async() -> WeatherReportWorkflow:
     factory = await get_factory()
     return factory.create_weather_report_workflow()
 
-async def get_pwr_async() -> WeatherReportWorkflow:
-    factory = await get_factory()
-    return factory.create_powerful_weather_report_workflow()
-
-async def get_nl2sql_async() -> WeatherReportWorkflow:
-    factory = await get_factory()
-    return factory.create_nl2sql_workflow()
+# async def get_pwr_async() -> WeatherReportWorkflow:
+#     factory = await get_factory()
+#     return factory.create_powerful_weather_report_workflow()
+#
+# async def get_nl2sql_async() -> WeatherReportWorkflow:
+#     factory = await get_factory()
+#     return factory.create_nl2sql_workflow()
 
 async def close_factory():
     global _factory
