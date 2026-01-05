@@ -30,9 +30,6 @@ class SummaryAgent(BaseAgent):
         V0.1 先采用固定模板
         """
         try:
-            if not state["suggestion"].get("response"):
-                self.logger.error("Suggestion text missing")
-                raise
             recall_template = SUMMARY_TEMPLATE
             state["summary"]["recall_template"] = recall_template
             state["summary"]["sql_data"] = None

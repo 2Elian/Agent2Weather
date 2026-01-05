@@ -55,7 +55,6 @@ class SmwReturn(BaseModel):
 
 
 class PowerfulWeatherReportState(TypedDict):
-    # 用户输入
     task_type: str  # 任务类型：气象呈阅件/强天气报告
     start_date: str  # 开始日期 YYYY-MM-DD
     end_date: str  # 结束日期 YYYY-MM-DD
