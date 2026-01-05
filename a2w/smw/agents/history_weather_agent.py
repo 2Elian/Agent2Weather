@@ -104,7 +104,7 @@ class HistoryWeatherAgent(BaseAgent):
             state["history"]["status"] = StepStatus.FAILED
             state["history"]["response"] = ""
             state["history"]["think_response"] = ""
-            state["history"]["error"] = e
+            state["history"]["error"] = str(e)
 
         return state
     

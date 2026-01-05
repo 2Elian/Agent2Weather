@@ -60,7 +60,7 @@ class ForecastWeatherAgent(BaseAgent):
             state["forecast"]["status"] = StepStatus.FAILED
             state["forecast"]["response"] = ""
             state["forecast"]["think_response"] = ""
-            state["forecast"]["error"] = e
+            state["forecast"]["error"] = str(e)
             raise
         return state
         

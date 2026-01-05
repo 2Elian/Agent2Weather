@@ -49,7 +49,7 @@ class SummaryAgent(BaseAgent):
             state["summary"]["status"] = StepStatus.FAILED
             state["summary"]["response"] = ""
             state["summary"]["think_response"] = ""
-            state["summary"]["error"] = e
+            state["summary"]["error"] = str(e)
             raise
         return state
         

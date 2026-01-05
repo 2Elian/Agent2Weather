@@ -46,7 +46,7 @@ class SuggestionAgent(BaseAgent):
             state["suggestion"]["status"] = StepStatus.FAILED
             state["suggestion"]["response"] = ""
             state["suggestion"]["think_response"] = ""
-            state["suggestion"]["error"] = e
+            state["suggestion"]["error"] = str(e)
             raise
         return state
         

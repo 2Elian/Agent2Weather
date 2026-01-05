@@ -44,7 +44,7 @@ class BriefAgent(BaseAgent):
             state["final_brief"]["status"] = StepStatus.FAILED
             state["final_brief"]["response"] = ""
             state["final_brief"]["think_response"] = ""
-            state["final_brief"]["error"] = e
+            state["final_brief"]["error"] = str(e)
             raise
         return state
         
