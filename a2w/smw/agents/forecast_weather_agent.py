@@ -24,7 +24,7 @@ class ForecastWeatherAgent(BaseAgent):
             ])
         return prompt
     
-    async def run(self, state: WeatherReportState) -> dict:
+    async def run(self, state: WeatherReportState) -> WeatherReportState:
         # V0.1.0 done
         try:
             self.logger.info(f"Query Weather Forecast Date: {state['start_date']} ~ {state['end_date']}")
@@ -33,7 +33,7 @@ class ForecastWeatherAgent(BaseAgent):
             recall_template = SPECIFIC_WEATHER_TEMPLATE
             state["forecast"]["recall_template"] = recall_template
             forecast_data = await self.db.query_detailed_weather_from_hourTable(
-                regions=state["region"],
+                regions=state["station_names"],
                 start_date=state["start_date"],
                 end_date=state["end_date"],
                 aggregation="half", # optional["hourly", "half", "daily"]

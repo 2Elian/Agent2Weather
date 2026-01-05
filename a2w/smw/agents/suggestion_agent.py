@@ -10,15 +10,13 @@ from a2w.smw.managers.embedding_recall import EmbeddingRecallManager
 from a2w.smw.templates.fixed_template.smw import SUGGEST_TEMPLATE
 from a2w.smw.utils.smw_util import parse_think_content
 from a2w.smw.templates.weather_report import WR_PROMPT
-
-logger = logging.getLogger(__name__)
-
+from a2w.utils.logger import setup_logger
 
 class SuggestionAgent(BaseAgent):
-    def __init__(self, llm: ChatOpenAI, embedding_recall_manager: EmbeddingRecallManager, config: SmwConfig = None):
+    def __init__(self, llm: ChatOpenAI, embedding_recall_manager: EmbeddingRecallManager = None, config: SmwConfig = None):
         super().__init__(llm, name="SuggestionAgent", config=config)
         self.embedding_recall = embedding_recall_manager
-    
+        self.logger = setup_logger(name=__class__.__name__)
     async def build_prompt(self) -> ChatPromptTemplate:
         prompt = ChatPromptTemplate.from_messages([
                 ("system", WR_PROMPT["suggestion"]["system"]),
@@ -27,13 +25,10 @@ class SuggestionAgent(BaseAgent):
         return prompt
     
     async def run(self, state: WeatherReportState) -> dict:
-        """
-        V0.2需要采纳多路召回 --> 语料库的label匹配 + 语义召回
-        V0.1 先采用固定模板
-        """
+        # TODO 采用固定模板的话 非常不好 参考历史做一个映射吧
         try:
             if not state["forecast"].get("response"):
-                logger.error("Early-stage data or forecast text missing")
+                self.logger.error("Early-stage data or forecast text missing")
                 raise
             recall_template = SUGGEST_TEMPLATE
             state["suggestion"]["recall_template"] = recall_template
@@ -62,7 +57,7 @@ class SuggestionAgent(BaseAgent):
         try:
             chain = prompt | self.llm
             response = await chain.ainvoke({
-                "forecast": state["forecast_text"].get("response"),
+                "forecast": state["forecast"].get("response"),
                 "template": state["suggestion"]["recall_template"] 
             })
             return response.content

@@ -37,8 +37,8 @@ class HistoryWeatherAgent(BaseAgent):
                 ('user', WR_PROMPT["history"]["user"])
             ])
         return prompt
-    
-    async def run(self, state: WeatherReportState) -> dict:
+
+    async def run(self, state: WeatherReportState) -> WeatherReportState:
         """
         Business Logic:
             思路是: 给现有的模板打上天气类型标签(业务上要不断迭代模板的标签信息), 然后做标签召回, 即省时间又不容易犯错. 内嵌badcase回调机制 不断收集正样本、负样本、硬副样本 为后续调embedding模型做数据准备
