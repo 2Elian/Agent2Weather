@@ -6,14 +6,13 @@ from a2w.smw.agents.base_agent import BaseAgent
 from a2w.smw.agents.state import StepStatus, WeatherReportState
 from a2w.smw.templates.weather_report import WR_PROMPT
 from a2w.smw.utils.smw_util import parse_think_content
-
-logger = logging.getLogger(__name__)
+from a2w.utils.logger import setup_logger
 
 
 class BriefAgent(BaseAgent):
     def __init__(self, llm: Any, config: SmwConfig = None):
         super().__init__(llm, name="BriefAgent", config=config)
-
+        self.logger = setup_logger(name=__class__.__name__)
     async def build_prompt(self) -> ChatPromptTemplate:
         prompt = ChatPromptTemplate.from_messages([
                 ("system", WR_PROMPT["final_brief"]["system"]),
@@ -21,7 +20,7 @@ class BriefAgent(BaseAgent):
             ])
         return prompt
     
-    async def run(self, state: WeatherReportState) -> dict:
+    async def run(self, state: WeatherReportState) -> WeatherReportState:
         """
         V0.2需要采纳多路召回 --> 语料库的label匹配 + 语义召回
         V0.1 先采用固定模板

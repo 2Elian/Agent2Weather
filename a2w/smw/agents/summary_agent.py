@@ -10,15 +10,13 @@ from a2w.smw.managers.embedding_recall import EmbeddingRecallManager
 from a2w.smw.templates.fixed_template.smw import SUMMARY_TEMPLATE
 from a2w.smw.templates.weather_report import WR_PROMPT
 from a2w.smw.utils.smw_util import parse_think_content
-
-logger = logging.getLogger(__name__)
-
+from a2w.utils.logger import setup_logger
 
 class SummaryAgent(BaseAgent):
     def __init__(self, llm: ChatOpenAI, embedding_recall_manager: EmbeddingRecallManager, config: SmwConfig = None):
         super().__init__(llm, name="SummaryAgent", config=config)
         self.embedding_recall = embedding_recall_manager
-    
+        self.logger = setup_logger(name=__class__.__name__)
     async def build_prompt(self) -> ChatPromptTemplate:
         prompt = ChatPromptTemplate.from_messages([
                 ("system", WR_PROMPT["summary"]["system"]),
@@ -26,14 +24,14 @@ class SummaryAgent(BaseAgent):
             ])
         return prompt
     
-    async def run(self, state: WeatherReportState) -> dict:
+    async def run(self, state: WeatherReportState) -> WeatherReportState:
         """
         V0.2需要采纳多路召回 --> 语料库的label匹配 + 语义召回
         V0.1 先采用固定模板
         """
         try:
             if not state["suggestion"].get("response"):
-                logger.error("Suggestion text missing")
+                self.logger.error("Suggestion text missing")
                 raise
             recall_template = SUMMARY_TEMPLATE
             state["summary"]["recall_template"] = recall_template
