@@ -47,7 +47,7 @@ class HistoryWeatherAgent(BaseAgent):
             query_categories = [wt for item in state["init_weather_data"] for wt in item.get("weather_types", [])]
             if not query_categories:
                 self.logger.warning("TODO: callback and record the badcase")
-                raise
+                raise ValueError("query_categories is empty")
             history_weather_template, match_score = self.recall_best_template(query_categories, self.build_fixed_template)
             if history_weather_template is None:
             # if history_weather_template is None or match_score==0.0:
@@ -65,7 +65,6 @@ class HistoryWeatherAgent(BaseAgent):
                 self.callback_badcase(data_type=BadcaseType.RECALL_TYPE, data=badcase_data)
 
             state["history"]["recall_template"] = history_weather_template.get("text_content")
-            # TODO to PECW Module
             cntys = await self.db.query_cnty_by_regions(state["station_names"])
             user_query_to_pecw = {
                 "start_date": state["start_date"],
@@ -85,12 +84,11 @@ class HistoryWeatherAgent(BaseAgent):
                 weather_types=list(dict.fromkeys(query_categories)),
                 template_analysis=state["history"]["recall_template"]
             )
-            pecw_result, state = await self.pecw_agent.run(user_query=user_query_to_pecw,
+            pecw_result = await self.pecw_agent.run(user_query=user_query_to_pecw,
                                                                         template=state["history"]["recall_template"],
                                                                           plan_template=plan_template)
-            print(state)
-            prompt = self.build_prompt()
-            weather_data = [asdict(sub_query_output)for sub_query_output in pecw_result]
+            prompt = await self.build_prompt()
+            weather_data = [asdict(sub_query_output) for sub_query_output in pecw_result.get("final_report")]
             llm_response = await self.call_llm(prompt, state, weather_data, user_query_to_pecw)
             think_text, history_report = parse_think_content(llm_response)
             state["history"]["response"] = history_report
@@ -101,13 +99,13 @@ class HistoryWeatherAgent(BaseAgent):
             self.logger.info("-"*60)
             self.logger.info(f"《The History Weather》:\n {history_report}")
             self.logger.info("-"*60)
-            
         except Exception as e:
             self.logger.error(f"The History Weather Generate Failed: {e}")
             state["history"]["status"] = StepStatus.FAILED
             state["history"]["response"] = ""
             state["history"]["think_response"] = ""
             state["history"]["error"] = e
+
         return state
     
     async def call_llm(self, prompt: ChatPromptTemplate, state: WeatherReportState, weather_data, user_query_to_pecw) -> str:
@@ -116,14 +114,14 @@ class HistoryWeatherAgent(BaseAgent):
             response = await chain.ainvoke({
                 "weather_data": weather_data,
                 "raw_information": user_query_to_pecw,
-                "template": state["forecast"]["recall_template"] 
+                "template": state["history"]["recall_template"]
             })
             return response.content
-        except Exception as e:
-            ValueError(e)
+        except Exception:
+            self.logger.exception("LLM call failed")
+            raise
 
-
-    def recall_best_template(self, query_categories: List[str], templates: List[Dict]) -> Dict:
+    def recall_best_template(self, query_categories: List[str], templates: List[Dict]):
         query_set = set(query_categories)
 
         best_score = 0.0

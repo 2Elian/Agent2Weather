@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 from datetime import datetime
 from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, END, CompiledStateGraph
 
 from a2w.configs.smw_config import SmwConfig
 from a2w.smw.agents.state import WeatherReportState, StepStatus, SmwReturn
@@ -28,7 +28,7 @@ class WeatherReportWorkflow:
         self.graph = self._build_graph()
         self.logger = setup_logger(name=__class__.__name__)
     
-    def _build_graph(self) -> StateGraph:
+    def _build_graph(self):
         workflow = StateGraph(WeatherReportState)
         
         workflow.add_node("input", self.input_node)
