@@ -27,9 +27,6 @@ class SuggestionAgent(BaseAgent):
     async def run(self, state: WeatherReportState) -> dict:
         # TODO 采用固定模板的话 非常不好 参考历史做一个映射吧
         try:
-            if not state["forecast"].get("response"):
-                self.logger.error("Early-stage data or forecast text missing")
-                raise
             recall_template = SUGGEST_TEMPLATE
             state["suggestion"]["recall_template"] = recall_template
             state["suggestion"]["sql_data"] = None

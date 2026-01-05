@@ -17,7 +17,7 @@ class DBConnector(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    async def query_weather_metrics(self, region: str, start_date: str, end_date: str) -> Optional[Dict[str, Any]]:
+    async def query_weather_metrics(self, regions: str, start_date: str, end_date: str) -> Optional[Dict[str, Any]]:
         """查询天气指标数据"""
         raise NotImplementedError
     
