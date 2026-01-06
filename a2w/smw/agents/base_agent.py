@@ -29,7 +29,7 @@ class BaseAgent(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    async def run(self, state: WeatherReportState) -> dict:
+    async def run(self, state: WeatherReportState) -> WeatherReportState:
         raise NotImplementedError
     
     async def call_llm(self, prompt: ChatPromptTemplate) -> str:

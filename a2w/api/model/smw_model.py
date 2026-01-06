@@ -21,6 +21,22 @@ class SmwRequest(BaseModel):
         ...,
         description='站点名称列表，例如 ["宜春国家基准气候站", "袁州温汤国家气象观测站"]'
     )
+    depends: bool = Field(
+        False,
+        description="是否依赖前序结果（true/false）"
+    )
+    forecast: str = Field(
+        "",
+        description="如果依赖于前序结果 必须提供预报文本 --> 只需要传递response字段即可"
+    )
+    suggestion: str = Field(
+        "",
+        description="如果依赖于前序结果 必须提供建议文本"
+    )
+    summary: str = Field(
+        "",
+        description="如果依赖于前序结果 必须提供摘要文本"
+    )
     @field_validator("start_date", "end_date", mode="before")
     @classmethod
     def parse_datetime(cls, v):

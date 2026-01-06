@@ -2,11 +2,27 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from a2w.utils import setup_logger
+from a2w.api.core import BusinessError
 
 logger = setup_logger("api.exception")
 
 
 def register_exception_handlers(app: FastAPI):
+
+    # 业务逻辑异常
+    @app.exception_handler(BusinessError)
+    async def business_error_handler(request: Request, exc: BusinessError):
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "FAILED",
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message
+                }
+            }
+        )
+
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
         logger.warning(f"请求验证失败: {exc.errors()}")
