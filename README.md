@@ -4,6 +4,8 @@
 
 </div>
 
+![A2W-Framework](/docs/a2w-framework.png "Agent-to-Weather")
+
 ## 功能特性
 
 - 检索召回写作模板 --> 内嵌badcase收集 与Embedding模型微调接口
