@@ -54,7 +54,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
+    # 全局异常捕获
     register_exception_handlers(app)
     app.include_router(smw_router, prefix=config.get("api_prefix"))
 

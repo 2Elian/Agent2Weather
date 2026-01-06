@@ -5,6 +5,7 @@ from langchain_openai import ChatOpenAI
 
 from a2w.configs.smw_config import SmwConfig
 from a2w.smw.executors import WeatherReportWorkflow
+from a2w.smw.agents import HistoryWeatherAgent, ForecastWeatherAgent, SuggestionAgent, SummaryAgent, BriefAgent
 from a2w.api.middleware.db.sql_connector import SQLServerConnector
 from a2w.configs import GlobalConfig
 
@@ -43,6 +44,36 @@ class ProductionWorkflowFactory(WorkflowFactory):
             db_connector=self.db,
             config=self.smw_config
         )
+
+    def create_wr_history(self) -> HistoryWeatherAgent:
+        return HistoryWeatherAgent(
+            llm = self.llm_instance,
+            db_connector=self.db,
+            config=self.smw_config
+        )
+    def create_wr_forecast(self) -> ForecastWeatherAgent:
+        return ForecastWeatherAgent(
+            llm = self.llm_instance,
+            db_connector=self.db,
+            config=self.smw_config
+        )
+    def create_wr_suggest(self) -> SuggestionAgent:
+        return SuggestionAgent(
+            llm = self.llm_instance,
+            embedding_recall_manager=None,
+            config=self.smw_config
+        )
+    def create_wr_summary(self) -> SummaryAgent:
+        return SummaryAgent(
+            llm = self.llm_instance,
+            embedding_recall_manager=None,
+            config=self.smw_config
+        )
+    def create_wr_brief(self) -> BriefAgent:
+        return BriefAgent(
+            llm = self.llm_instance,
+            config=self.smw_config
+        )
     def create_powerful_weather_report_workflow(self) -> WeatherReportWorkflow:
         raise NotImplementedError
     def create_nl2sql_workflow(self) -> WeatherReportWorkflow:
@@ -70,6 +101,27 @@ async def get_factory() -> ProductionWorkflowFactory:
 async def get_wr_async() -> WeatherReportWorkflow:
     factory = await get_factory()
     return factory.create_weather_report_workflow()
+
+async def get_wr_history_async() -> HistoryWeatherAgent:
+    factory = await get_factory()
+    return factory.create_wr_history()
+
+async def get_wr_forecast_async() -> ForecastWeatherAgent:
+    factory = await get_factory()
+    return factory.create_wr_forecast()
+
+async def get_wr_suggest_async() -> SuggestionAgent:
+    factory = await get_factory()
+    return factory.create_wr_suggest()
+
+async def get_wr_summary_async() -> SummaryAgent:
+    factory = await get_factory()
+    return factory.create_wr_summary()
+
+async def get_wr_brief_async() -> BriefAgent:
+    factory = await get_factory()
+    return factory.create_wr_brief()
+
 
 # async def get_pwr_async() -> WeatherReportWorkflow:
 #     factory = await get_factory()

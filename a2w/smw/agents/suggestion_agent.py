@@ -24,7 +24,7 @@ class SuggestionAgent(BaseAgent):
             ])
         return prompt
     
-    async def run(self, state: WeatherReportState) -> dict:
+    async def run(self, state: WeatherReportState) -> WeatherReportState:
         # TODO 采用固定模板的话 非常不好 参考历史做一个映射吧
         try:
             recall_template = SUGGEST_TEMPLATE
