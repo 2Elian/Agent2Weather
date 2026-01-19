@@ -64,34 +64,6 @@ class TestDB:
         result = await self.forecast_instance.run(state=state)
         return result
     
-    @time_recorder(func_name="HistoryTester")
-    async def history(self, regions: List[str], start_date: str, end_date: str) -> Optional[Dict[str, Any]]:
-        metrics_data = await self.db.query_weather_metrics(
-            regions=regions,
-            start_date=start_date,
-            end_date=end_date
-        )
-
-        metrics = WeatherClassifier.parse_sql_result(metrics_data) # List[Dict[str, Any]]
-        analyst_result = WeatherClassifier.classify_stations(metrics) # List[Dict[str, Any]]
-        state = WeatherReportState(
-            task_type="气象呈阅件",
-            start_date=start_date,
-            end_date=end_date,
-            station_names=regions,
-            init_weather_data=analyst_result,
-            history={},
-            forecast={},
-            suggestion={},
-            summary={},
-            final_brief={},
-            error=None,
-            tasks_completed={}
-        )
-        result = await self.history_instance.run(state=state)
-        return result
-
-    
 
 async def main():
     test_db = await TestDB.create(
@@ -104,9 +76,9 @@ async def main():
 
     try:
         result = await test_db.forecast(
-            regions=["万载杨源村", "宜丰谭山院前"],
-            start_date="2025-01-01",
-            end_date="2025-01-07",
+            regions=["赤岸观下气象观测站", "丰城秀市座山"],
+            start_date="2025-06-08",
+            end_date="2025-06-12",
         )
         print(result)
     finally:

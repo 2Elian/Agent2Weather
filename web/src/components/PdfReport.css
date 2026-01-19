@@ -1,0 +1,61 @@
+.pdf-report-container {
+    width: 210mm; /* A4 width */
+    min-height: 297mm; /* A4 height */
+    padding: 20mm;
+    background-color: white;
+    margin: 0 auto;
+    font-family: "FangSong", "仿宋", serif; /* Fallback to FangSong */
+    color: black;
+    box-sizing: border-box;
+    /* hidden by default in screen, handled by parent or media query if needed */
+}
+
+.pdf-header-large {
+    font-family: "SimSun", "宋体", serif; /* Should ideally be XiaoBiaoSong */
+    font-size: 32pt;
+    color: #FF0000;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+    letter-spacing: 5px;
+}
+
+.pdf-red-line {
+    border-bottom: 3px solid #FF0000;
+    margin-bottom: 15mm;
+}
+
+.pdf-header-small {
+    font-family: "SimHei", "黑体", sans-serif;
+    font-size: 16pt;
+    color: #FF0000;
+    text-align: center;
+    margin-bottom: 15mm;
+    font-weight: normal;
+}
+
+.pdf-content {
+    font-size: 16pt; /* 三号字 approx */
+    line-height: 1.6;
+}
+
+.pdf-section {
+    margin-bottom: 15px;
+}
+
+.pdf-section-title {
+    font-weight: bold;
+    font-family: "SimHei", "黑体", sans-serif;
+    margin-bottom: 5px;
+}
+
+.pdf-text {
+    text-indent: 2em;
+    margin: 0;
+    text-align: justify;
+}
+
+.pdf-text-block {
+    white-space: pre-wrap;
+    text-align: justify;
+}

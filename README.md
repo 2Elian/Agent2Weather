@@ -26,25 +26,40 @@
 ```bash
 step1: 下载大模型到本地
 URL: https://www.modelscope.cn/models/Qwen/Qwen3-30B-A3B-Instruct-2507
-把模型权重下载到./ckpt/qwen3-30b-a3b文件夹
-
-step2: 下载SQLServer 并导入数据
-数据库名称：A2W_YiChun(也可以自己定义，别忘了改.env文件即可)
-表名(必须一致，如若不一致，请联系我更改后端逻辑)：
-小时表：automatic_station_data
-日表：automatic_station_his_day_data_年份
+把模型权重下载到./ckpt/qwen3文件夹
 
 step3: 开始部署
-bash -u ./deploy.sh
-```
+docker-compose up -d
 
-### 2. 启动服务
+# 查看日志
+docker-compose logs -f
 
-```bash
-step1: 确保数据库后端服务已经启动
+# 查看特定服务日志
+docker-compose logs -f a2w-app
+docker-compose logs -f vllm
 
-step2: 复制.env.exmaple文件为.env，修改.env的配置
+# 启动服务
+docker-compose up -d
 
-step3: 启动服务
-bash -u ./start.sh
-```
+# 停止服务
+docker-compose down
+
+# 停止并删除所有数据
+docker-compose down -v
+
+# 重新构建应用镜像
+docker-compose build a2w-app
+
+# 重启特定服务
+docker-compose restart a2w-app
+
+# 查看服务状态
+docker-compose ps
+
+# 进入容器
+docker-compose exec a2w-app bash
+docker-compose exec vllm bash
+
+# 查看GPU使用情况
+docker-compose exec vllm nvidia-smi
+``

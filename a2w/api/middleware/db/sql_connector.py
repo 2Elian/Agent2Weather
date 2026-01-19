@@ -452,3 +452,62 @@ class SQLServerConnector(DBConnector):
 
         except Exception as e:
             raise
+
+    async def get_available_stations(self, start_date: str, end_date: str) -> List[str]:
+        """
+        获取指定日期范围（忽略年份）在所有历史表中出现过的站点名称
+        start_date: YYYY-MM-DD
+        end_date: YYYY-MM-DD
+        """
+        try:
+            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+            
+            start_month = start_dt.month
+            end_month = end_dt.month
+            
+            if start_month <= end_month:
+                month_condition = f"MONTH(observation_time) BETWEEN {start_month} AND {end_month}"
+            else:
+                month_condition = f"(MONTH(observation_time) >= {start_month} OR MONTH(observation_time) <= {end_month})"
+
+            # 1. 获取所有存在的表名
+            check_tables_sql = """
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_name LIKE 'automatic_station_his_day_data_%'
+            """
+            
+            if not self.pool:
+                await self.connect()
+
+            async with self.pool.acquire() as conn:
+                async with conn.cursor() as cursor:
+                    await cursor.execute(check_tables_sql)
+                    rows = await cursor.fetchall()
+                    existing_tables = set(row[0] for row in rows)
+            
+            # 2. 构建查询
+            union_parts = []
+            # 遍历 1949-2025
+            for year in range(2025, 1948, -1):
+                t_name = f"automatic_station_his_day_data_{year}"
+                if t_name in existing_tables:
+                     union_parts.append(f"SELECT station_name FROM {t_name} WHERE {month_condition}")
+            
+            if not union_parts:
+                return []
+            
+            # 3. 执行合并查询
+            full_sql = " UNION ".join(union_parts)
+            final_sql = f"SELECT DISTINCT station_name FROM ({full_sql}) AS T ORDER BY station_name"
+            
+            async with self.pool.acquire() as conn:
+                async with conn.cursor() as cursor:
+                    await cursor.execute(final_sql)
+                    rows = await cursor.fetchall()
+                    return [row[0] for row in rows if row[0]]
+
+        except Exception as e:
+            self.logger.error(f"获取站点列表失败: {e}")
+            return []

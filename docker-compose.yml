@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-a2w
+    hostname: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DATABASE_PASSWORD:-YourStrong!Passw0rd}
+      - MSSQL_PID=Developer
+      - MSSQL_DATABASE=${DATABASE_NAME:-A2W_YiChun}
+      - MSSQL_USER=${DATABASE_USERNAME:-sa}
+      - TZ=Asia/Shanghai
+    ports:
+      - "${DATABASE_PORT:-1433}:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+      - ./data/sql:/data/sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${DATABASE_PASSWORD:-YourStrong!Passw0rd}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+
+  a2w-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: a2w-application
+    env_file:
+      - .env 
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - app-cache:/root/.cache/huggingface
+      - ./a2w:/app/a2w
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${API_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  sqlserver-data:
+    driver: local
+  vllm-cache:
+  app-cache:
+  models-volume:

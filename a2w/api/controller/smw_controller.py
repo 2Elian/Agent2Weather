@@ -19,10 +19,33 @@ from a2w.api.core.dependencies import (
     get_wr_suggest_async,
     get_wr_summary_async,
     get_wr_brief_async,
+    get_db_connector_async
     )
+from a2w.api.middleware.db.sql_connector import SQLServerConnector
 
 logger = setup_logger("api.routes.smw")
 smw_router = APIRouter(prefix="/smw", tags=["SMW"])
+
+@smw_router.get("/stations", response_model=SmwResponse, summary="获取指定时间范围内的自动站列表")
+async def get_stations(
+    start_date: str = Query(..., description="开始日期 YYYY-MM-DD"),
+    end_date: str = Query(..., description="结束日期 YYYY-MM-DD"),
+    db: SQLServerConnector = Depends(get_db_connector_async)
+) -> SmwResponse:
+    try:
+        stations = await db.get_available_stations(start_date, end_date)
+        return SmwResponse(
+            status="success",
+            data={"stations": stations},
+            error=None,
+            metadata={}
+        )
+    except Exception as e:
+        import traceback
+        error_detail = f"{type(e).__name__}: {str(e)}"
+        logger.error(f"Get stations failed: {error_detail}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=error_detail)
 
 # 气象呈阅件接口如下
 @smw_router.post("/WeatherReport", response_model=SmwResponse, summary="气象呈阅件服务总接口")

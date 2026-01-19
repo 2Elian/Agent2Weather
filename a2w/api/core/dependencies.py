@@ -136,3 +136,7 @@ async def close_factory():
     if _factory:
         await _factory.close()
         _factory = None
+
+async def get_db_connector_async() -> SQLServerConnector:
+    factory = await get_factory()
+    return factory.db
