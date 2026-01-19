@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Layout, message, Spin, Typography } from 'antd';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import html2pdf from 'html2pdf.js';
 import { CloudOutlined } from '@ant-design/icons';
 import TaskForm from './components/TaskForm';
 import ResultDisplay from './components/ResultDisplay';
@@ -45,41 +44,38 @@ function App() {
     }
   };
 
-  const handleExportPdf = async () => {
+  const handleExportPdf = () => {
     if (!pdfRef.current) return;
     
-    const hideLoading = message.loading('正在生成 PDF...', 0);
-    try {
-      const element = pdfRef.current;
-      element.style.display = 'block';
-      
-      const canvas = await html2canvas(element, {
-        scale: 2, 
-        useCORS: true,
-        logging: false,
-      });
-      
-      element.style.display = 'none';
+    const element = pdfRef.current;
+    // 临时显示元素以便 html2pdf 捕获
+    // 我们使用 cloneNode 来避免影响原始 DOM，但 html2pdf 需要元素在文档流中可见
+    // 由于我们在 App 中已经将其渲染在一个不可见的 fixed 容器中，我们只需要确保该容器在截图时内容正确
+    // html2pdf.js 能够处理这种离屏渲染，只要样式正确。
+    
+    // 关键配置
+    const opt = {
+      margin:       10, // mm
+      filename:     `${taskType}_${new Date().toISOString().split('T')[0]}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // 智能分页
+    };
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      let position = 0;
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-      
-      pdf.save(`${taskType}_${new Date().toISOString().split('T')[0]}.pdf`);
-      message.success('PDF 导出成功');
-    } catch (error) {
-      console.error(error);
-      message.error('PDF 生成失败');
-    } finally {
-      hideLoading();
-    }
+    message.loading('正在生成 PDF...', 1);
+    
+    // 我们不需要手动显示/隐藏，因为该元素已经在页面上（虽然位置偏离）。
+    // 但为了确保万无一失，我们可以临时将其移入可视区域（使用 absolute + z-index 覆盖），生成后再移回去
+    // 或者直接对那个 off-screen 元素操作。html2canvas 对 off-screen 支持较好。
+    
+    // 使用 worker API 进行生成
+    html2pdf().set(opt).from(element).save().then(() => {
+        message.success('PDF 导出成功');
+    }).catch(err => {
+        console.error(err);
+        message.error('PDF 生成失败');
+    });
   };
 
   return (
@@ -135,7 +131,7 @@ function App() {
       <Spin spinning={loading} tip="正在生成分析报告，请稍候..." fullscreen size="large" />
 
       {/* Hidden PDF Render Container - Fixed Width for A4 */}
-      <div style={{ position: 'fixed', top: '-10000px', left: '-10000px', width: '794px', background: 'white', zIndex: -1 }}>
+      <div style={{ position: 'fixed', top: '-10000px', left: '-10000px', width: '210mm', background: 'white', zIndex: -1 }}>
          <PdfReport 
             ref={pdfRef} 
             data={resultData} 
